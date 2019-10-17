@@ -1,0 +1,4 @@
+build/
+dist/
+jddf.egg-info/
+__pycache__
