@@ -1,2 +1,2 @@
 from jddf.schema import Schema
-from jddf.validator import Validator, ValidationError
+from jddf.validator import MaxDepthExceededError, Validator, ValidationError

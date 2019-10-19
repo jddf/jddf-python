@@ -15,8 +15,15 @@ class ValidationError:
         return str(self.__dict__)
 
 
+class MaxDepthExceededError(Exception):
+    pass
+
+
 class Validator:
     class _VM:
+        class MaxErrorsError(Exception):
+            pass
+
         def __init__(self, schema: Schema, max_depth: int, max_errors: int):
             self.root = schema
             self.max_depth = max_depth
@@ -27,6 +34,9 @@ class Validator:
 
         def validate(self, schema: Schema, instance: Any, parent_tag: Optional[str] = None):
             if schema.form() == Form.REF:
+                if len(self.schema_tokens) == self.max_depth:
+                    raise MaxDepthExceededError
+
                 self.schema_tokens.append(["definitions", schema.ref])
                 self.validate(self.root.definitions[schema.ref], instance)
                 self.schema_tokens.pop()
@@ -188,11 +198,19 @@ class Validator:
                 self.instance_tokens.copy(),
                 self.schema_tokens[-1].copy()))
 
+            if len(self.errors) == self.max_errors:
+                raise Validator._VM.MaxErrorsError()
+
     def __init__(self, **kwargs):
         self.max_depth = kwargs.get('max_depth', 0)
         self.max_errors = kwargs.get('max_errors', 0)
 
     def validate(self, schema: Schema, instance: Any) -> List[ValidationError]:
         vm = Validator._VM(schema, self.max_depth, self.max_errors)
-        vm.validate(schema, instance)
+
+        try:
+            vm.validate(schema, instance)
+        except Validator._VM.MaxErrorsError:
+            pass
+
         return vm.errors

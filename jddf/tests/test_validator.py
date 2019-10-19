@@ -6,6 +6,18 @@ from typing import List
 
 
 class TestValidator(unittest.TestCase):
+    def test_max_depth(self):
+        schema = jddf.Schema(definitions={"x": jddf.Schema(ref="x")}, ref="x")
+        validator = jddf.Validator(max_depth=5)
+        with self.assertRaises(jddf.MaxDepthExceededError):
+            validator.validate(schema, None)
+
+    def test_max_errors(self):
+        schema = jddf.Schema(elements=jddf.Schema(type="string"))
+        validator = jddf.Validator(max_errors=3)
+        errors = validator.validate(schema, [None, None, None, None, None])
+        self.assertEqual(len(errors), 3)
+
     def test_spec(self):
         for path in glob.glob('spec/tests/validation/*'):
             with open(path) as f:
