@@ -65,7 +65,7 @@ class Schema:
 
         typ = value.get('type')
         if typ is not None:
-            if type(typ) not in Schema.TYPE_VALUES:
+            if typ not in Schema.TYPE_VALUES:
                 raise TypeError('type not one of Schema.TYPE_VALUES')
 
             schema.type = typ
@@ -162,23 +162,19 @@ class Schema:
 
             self.elements.verify(root)
 
-        if self.properties is not None:
+        if self.properties is not None or self.optional_properties is not None:
             if not empty:
                 raise TypeError('invalid form')
 
             empty = False
 
-            for value in self.properties.values():
-                value.verify(root)
+            if self.properties:
+                for value in self.properties.values():
+                    value.verify(root)
 
-        if self.optional_properties is not None:
-            if not empty:
-                raise TypeError('invalid form')
-
-            empty = False
-
-            for value in self.optional_properties.values():
-                value.verify(root)
+            if self.optional_properties:
+                for value in self.optional_properties.values():
+                    value.verify(root)
 
         if self.properties is not None and self.optional_properties is not None:
             properties = set(self.properties.keys())
@@ -207,8 +203,11 @@ class Schema:
                     raise TypeError(
                         'discriminator mapping value not of properties form')
 
-                if (self.discriminator.tag in value.properties or
-                    self.discriminator.tag in value.optional_properties):
+                tag = self.discriminator.tag
+                in_properties = value.properties and tag in value.properties
+                in_optional_properties = value.optional_properties and tag in value.optional_properties
+
+                if in_properties or in_optional_properties:
                     raise TypeError(
                         'discriminator tag repeated in mapping value')
 
@@ -216,7 +215,7 @@ class Schema:
 
     def form(self) -> Form:
         if self.ref is not None:
-            return Form.ENUM
+            return Form.REF
         if self.type is not None:
             return Form.TYPE
         if self.enum is not None:
