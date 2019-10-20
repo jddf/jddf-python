@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="jddf",
-    version="0.0.1",
+    version="0.1.0",
     author="Ulysse Carion",
     author_email="ulysse@segment.com",
     description="JSON Data Definition Format support for Python",
