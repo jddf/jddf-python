@@ -3,17 +3,69 @@ from enum import Enum, auto
 
 
 class Form(Enum):
+    """
+    An enumeration of all the JDDF Schema forms.
+
+    Instances of this class are returned from `Schema.form()`.
+    """
+
     EMPTY = auto()
+    """The empty form."""
+
     REF = auto()
+    """The ref form."""
+
     TYPE = auto()
+    """The type form."""
+
     ENUM = auto()
+    """The enum form."""
+
     ELEMENTS = auto()
+    """The elements form."""
+
     PROPERTIES = auto()
+    """The properties form."""
+
     VALUES = auto()
+    """The values form."""
+
     DISCRIMINATOR = auto()
+    """The discriminator form."""
 
 
 class Schema:
+    """
+    Represents a JSON Data Definition Format schema.
+
+    There are two ways to construct instances of this class: Schema.from_json
+    parses a Schema from parsed JSON -- that is, a dict which was returned from
+    `json.loads`.
+
+    Instances of this class are not guaranteed to be "correct" JDDF schemas. To
+    validate that a schema is correct, use the `verify()` method.
+
+    This constructor for this class understands the following kwargs, all of
+    which are optional:
+
+        * `definitions` is meant to be a dict with Schemas as values
+        * `ref` is meant to be a string
+        * `enum` is meant to be a list of strings
+        * `elements` is meant to be a Schema
+        * `properties` is meant to be a dict with Schemas as values
+        * `optional_properties` is meant to be a dict with Schemas as values
+        * `additional_properties` is meant to be a bool
+        * `values` is meant to be a Schema
+        * `discriminator` is meant to be a Discriminator
+
+    Construction this way does not do type checking or other sorts of input
+    validation. To parse incoming JSON as a schema, you should use `json.loads`
+    in combination with the `from_json` and `verify` methods of this class.
+
+    >>> Schema(type='string').type
+    'string'
+    """
+
     TYPE_VALUES = [
         'boolean',
         'int8',
@@ -42,6 +94,21 @@ class Schema:
 
     @staticmethod
     def from_json(value: Any) -> 'Schema':
+        """
+        Construct a Schema from JSON.
+
+        In combination with `json.loads` and `verify`, this method will
+        thoroughly vet that a Schema is correct.
+
+        >>> import json
+        >>> data = '{"properties": {"age": {"type": "uint32"}, "name": {"type": "string"}}}'
+        >>> schema = Schema.from_json(json.loads(data)).verify()
+        >>> schema.properties["age"].type
+        'uint32'
+        >>> schema.properties["name"].type
+        'string'
+        """
+
         schema = Schema()
 
         if type(value) is not dict:
@@ -127,6 +194,18 @@ class Schema:
         return schema
 
     def verify(self, root=None) -> 'Schema':
+        """
+        Check that a Schema represents a correct JDDF schema.
+
+        This method will raise TypeError if any of the constraints of JDDF are
+        violated, and returns `self` if the schema is correct.
+
+        >>> Schema(definitions={}, ref="foo").verify()
+        Traceback (most recent call last):
+            ...
+        TypeError: ref to nonexistent definition
+        """
+
         if root is None:
             root = self
 
@@ -214,6 +293,13 @@ class Schema:
         return self
 
     def form(self) -> Form:
+        """
+        Determine which of the eight JDDF Schema "forms" this schema takes on.
+
+        The return value of this method is meaningful only if the schema is a
+        correct one, i.e. no errors were raised by `verify()`.
+        """
+
         if self.ref is not None:
             return Form.REF
         if self.type is not None:
@@ -232,12 +318,25 @@ class Schema:
 
 
 class Discriminator:
+    """
+    Represents a JSON Data Definition Format schema discriminator object.
+
+    This class is meant to be the `discriminator` property of a `Schema`.
+    """
+
     def __init__(self, **kwargs):
         self.tag = kwargs.get('tag')
         self.mapping = kwargs.get('mapping')
 
     @staticmethod
     def from_json(value: Any) -> 'Discriminator':
+        """
+        Construct a discriminator from JSON data.
+
+        This method is typically not useful on its own; consider using
+        `Schema.from_json` instead.
+        """
+
         discriminator = Discriminator()
 
         if type(value) is not dict:
