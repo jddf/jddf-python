@@ -208,6 +208,9 @@ class Schema:
 
         if root is None:
             root = self
+        elif self.definitions:
+            # Non-root schemas may not have definitions.
+            raise TypeError('non-root definitions')
 
         if self.definitions:
             for value in self.definitions.values():
