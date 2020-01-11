@@ -1,11 +1,18 @@
-# jddf-python [![PyPI version](https://badge.fury.io/py/jddf.svg)](https://badge.fury.io/py/jddf)
+# jddf-python [![][pypi-badge]][pypi-url] [![][ci-badge]][ci-url]
 
-> Documentation on readthedocs.io: https://jddf.readthedocs.io
+> Documentation on ReadTheDocs: https://jddf.readthedocs.io
 
-This package is a Python implementation of [JSON Data Definition Format][jddf],
-a schema language for JSON.
+This package is a Python implementation of **JSON Data Definition Format**, a
+schema language for JSON. You can use this package to:
 
-[jddf]: https://jddf.io
+1. Validate input data against a schema,
+2. Get a list of validation errors from that input data, or
+3. Build your own tooling on top of JSON Data Definition Format
+
+[pypi-badge]: https://img.shields.io/pypi/v/jddf
+[ci-badge]: https://github.com/jddf/jddf-python/workflows/Python%20CI/badge.svg?branch=master
+[pypi-url]: https://pypi.org/project/jddf
+[ci-url]: https://github.com/jddf/jddf-python/actions
 
 ## Installation
 
